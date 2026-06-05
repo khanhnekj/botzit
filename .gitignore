@@ -1,0 +1,14 @@
+# Bảo vệ thông tin nhạy cảm - KHÔNG push lên GitHub
+config.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db

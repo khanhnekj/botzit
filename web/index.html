@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FBBot Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1120;--sidebar:#070d1a;--card:#141e30;--card2:#1a2540;
+  --border:#1e2d45;--primary:#3b82f6;--primary2:#2563eb;
+  --success:#10b981;--danger:#ef4444;--warn:#f59e0b;--purple:#a855f7;
+  --gold:#f59e0b;--text:#e2e8f0;--muted:#4d6080;--muted2:#64748b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:24px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:360px}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo h1{font-size:1.6rem;font-weight:800}
+.login-logo h1 em{color:var(--primary);font-style:normal}
+.login-logo p{font-size:.78rem;color:var(--muted2);margin-top:4px}
+.login-form-g{margin-bottom:14px}
+.login-form-g label{display:block;font-size:.72rem;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.login-form-g input{width:100%;background:#0a1020;border:1px solid var(--border);border-radius:9px;padding:10px 14px;color:var(--text);font-family:inherit;font-size:.88rem;transition:border-color .2s}
+.login-form-g input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.login-err{font-size:.78rem;color:var(--danger);text-align:center;min-height:20px;margin-bottom:4px}
+.login-btn{width:100%;padding:11px;border:none;border-radius:9px;background:var(--primary);color:#fff;font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s}
+.login-btn:hover{background:var(--primary2);box-shadow:0 4px 14px rgba(59,130,246,.35)}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:fixed;z-index:200;transition:transform .3s}
+.logo{padding:18px 16px;border-bottom:1px solid var(--border)}
+.logo h2{font-size:1.2rem;font-weight:800}
+.logo h2 em{color:var(--primary);font-style:normal}
+.logo p{font-size:.68rem;color:var(--muted2);margin-top:2px}
+.user-chip{margin:10px 10px 0;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:9px}
+.user-chip .avatar{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;flex-shrink:0}
+.role-owner .avatar{background:rgba(245,158,11,.2);color:#f59e0b}
+.role-admin .avatar{background:rgba(168,85,247,.2);color:#a855f7}
+.role-ndh .avatar{background:rgba(59,130,246,.2);color:#60a5fa}
+.role-member .avatar{background:rgba(100,116,139,.2);color:#94a3b8}
+.user-chip .uname{font-size:.78rem;font-weight:700;color:var(--text)}
+.user-chip .urole{font-size:.65rem;color:var(--muted2)}
+.role-badge{display:inline-flex;align-items:center;gap:3px;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:99px}
+.rb-owner{background:rgba(245,158,11,.15);color:#f59e0b}
+.rb-admin{background:rgba(168,85,247,.15);color:#a855f7}
+.rb-ndh{background:rgba(59,130,246,.15);color:#60a5fa}
+.rb-member{background:rgba(100,116,139,.15);color:#94a3b8}
+nav{padding:10px 8px;flex:1;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nb{display:flex;align-items:center;gap:10px;padding:9px 12px;border:none;background:transparent;color:var(--muted2);font-family:inherit;font-size:.82rem;font-weight:600;border-radius:8px;cursor:pointer;transition:all .18s;width:100%;text-align:left}
+.nb:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.nb.active{background:rgba(59,130,246,.13);color:#60a5fa;box-shadow:inset 3px 0 0 var(--primary)}
+.nb .ico{font-size:.95rem;width:20px;text-align:center}
+.nb.hidden{display:none}
+.nav-sep{height:1px;background:var(--border);margin:6px 8px}
+.sfoot{padding:12px 10px;border-top:1px solid var(--border);display:flex;gap:6px}
+.logout-btn{flex:1;padding:7px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted2);font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s}
+.logout-btn:hover{background:rgba(239,68,68,.1);border-color:var(--danger);color:var(--danger)}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 22px;background:rgba(7,13,26,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);flex-shrink:0}
+.topbar h1{font-size:.95rem;font-weight:700}
+.badge{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:99px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.badge.off{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2)}
+.badge.on{background:rgba(16,185,129,.1);color:var(--success);border:1px solid rgba(16,185,129,.2)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.dot.pulse{animation:pdot 1.4s infinite}
+@keyframes pdot{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:18px}
+.page{display:none;animation:fu .22s ease}
+.page.active{display:flex;flex-direction:column;gap:14px}
+@keyframes fu{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.ct{font-size:.88rem;font-weight:700;margin-bottom:3px}
+.cs{font-size:.73rem;color:var(--muted2);margin-bottom:14px}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:11px;transition:border-color .2s}
+.metric:hover{border-color:var(--primary)}
+.mico{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.mico.b{background:rgba(59,130,246,.15)}.mico.g{background:rgba(16,185,129,.15)}
+.mico.y{background:rgba(245,158,11,.15)}.mico.p{background:rgba(168,85,247,.15)}
+.ml h3{font-size:.62rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.ml p{font-size:.9rem;font-weight:700}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:7px;flex-wrap:wrap}
+.btn{padding:7px 16px;border:none;border-radius:7px;font-size:.8rem;font-weight:700;font-family:inherit;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:5px}
+.btn.prim{background:var(--primary);color:#fff}.btn.prim:hover{background:var(--primary2);box-shadow:0 3px 12px rgba(59,130,246,.3)}
+.btn.dang{background:var(--danger);color:#fff}.btn.dang:hover{background:#dc2626}
+.btn.gho{background:rgba(255,255,255,.06);color:#94a3b8;border:1px solid var(--border)}.btn.gho:hover{background:rgba(255,255,255,.1)}
+.btn.suc{background:var(--success);color:#fff}.btn.suc:hover{background:#059669}
+.btn.warn{background:var(--warn);color:#000}.btn.warn:hover{background:#d97706}
+.btn.sm{padding:5px 11px;font-size:.72rem}
+.btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none!important}
+
+/* CONSOLE */
+.console{font-family:'JetBrains Mono',monospace;font-size:.72rem;background:#040910;color:#64748b;border-radius:9px;border:1px solid var(--border);padding:11px;overflow-y:auto;line-height:1.85}
+.console .line{display:flex;gap:7px;align-items:baseline}
+.console .ts{color:#1e3050;flex-shrink:0}
+.console .tag{flex-shrink:0;padding:1px 5px;border-radius:4px;font-size:.62rem;font-weight:700}
+.tag.bot{background:rgba(16,185,129,.15);color:var(--success)}
+.tag.cmd{background:rgba(59,130,246,.15);color:#60a5fa}
+.tag.err{background:rgba(239,68,68,.15);color:var(--danger)}
+.tag.web{background:rgba(168,85,247,.15);color:var(--purple)}
+.tag.send{background:rgba(245,158,11,.15);color:var(--warn)}
+.tag.boot{background:rgba(16,185,129,.12);color:#34d399}
+.txt{color:#94a3b8;word-break:break-all}
+.txt.ok{color:#10b981}.txt.error{color:#ef4444}.txt.warn{color:#f59e0b}
+
+/* CHAT */
+.chat-wrap{display:grid;grid-template-columns:250px 1fr;height:calc(100vh - 116px);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.thread-list{background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.tl-head{padding:10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:7px;flex-shrink:0}
+.tl-label{font-size:.68rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em}
+.tl-head input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:6px 9px;color:var(--text);font-family:inherit;font-size:.76rem;outline:none;transition:border-color .2s}
+.tl-head input:focus{border-color:var(--primary)}
+.open-thread{display:flex;gap:5px}
+.open-thread input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:6px 9px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.72rem;outline:none;transition:border-color .2s}
+.open-thread input:focus{border-color:var(--success)}
+.thread-items{overflow-y:auto;flex:1}
+.thread-item{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:background .15s}
+.thread-item:hover{background:rgba(255,255,255,.04)}
+.thread-item.active{background:rgba(59,130,246,.1)}
+.t-name{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.t-preview{font-size:.68rem;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-empty{padding:20px;text-align:center;font-size:.75rem;color:var(--muted2)}
+
+/* CHAT MAIN */
+.chat-main{display:flex;flex-direction:column;background:var(--card)}
+.chat-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--muted2)}
+.chat-placeholder .ci{font-size:2.5rem;opacity:.25}
+.chat-header{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--card2)}
+.chat-header-info .ch-name{font-size:.85rem;font-weight:700}
+.chat-header-info .ch-id{font-size:.65rem;color:var(--muted2);font-family:'JetBrains Mono',monospace}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.msg-group{display:flex;flex-direction:column;gap:3px}
+.msg-group.me{align-items:flex-end}
+.msg-group.them{align-items:flex-start}
+.msg-sender{font-size:.62rem;color:var(--muted2);padding:0 4px;margin-bottom:1px}
+.msg-sender .s-name{font-weight:700;color:var(--muted2)}
+.msg-sender .s-uid{font-family:'JetBrains Mono',monospace;font-size:.6rem}
+.bubble{padding:8px 12px;border-radius:11px;font-size:.8rem;line-height:1.55;word-break:break-word;max-width:340px}
+.msg-group.me .bubble{background:var(--primary);color:#fff;border-bottom-right-radius:3px}
+.msg-group.them .bubble{background:var(--card2);color:var(--text);border-bottom-left-radius:3px}
+.msg-group.them .bubble.cmd{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);color:#93c5fd}
+.msg-time{font-size:.6rem;color:var(--muted);padding:0 4px;font-family:'JetBrains Mono',monospace}
+
+/* CHAT INPUT */
+.chat-input-area{border-top:1px solid var(--border);flex-shrink:0}
+.quick-cmds{padding:7px 11px;display:flex;gap:5px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.04);background:rgba(0,0,0,.15)}
+.qcmd{padding:3px 9px;border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--muted2);font-size:.68rem;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .15s}
+.qcmd:hover{background:rgba(59,130,246,.15);border-color:var(--primary);color:#60a5fa}
+.chat-input-row{padding:9px 11px;display:flex;gap:7px;align-items:flex-end}
+.chat-input-row textarea{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:8px 11px;color:var(--text);font-family:inherit;font-size:.8rem;resize:none;min-height:38px;max-height:110px;transition:border-color .2s;line-height:1.5;overflow-y:auto}
+.chat-input-row textarea:focus{outline:none;border-color:var(--primary)}
+.chat-input-row textarea.is-cmd{border-color:var(--warn);color:var(--warn)}
+
+/* COMMANDS */
+.cmd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:9px}
+.cmd-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;transition:border-color .2s}
+.cmd-card:hover{border-color:var(--muted)}
+.cmd-name-lbl{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:#38bdf8;font-weight:600}
+.cmd-desc-lbl{font-size:.7rem;color:var(--muted2);margin-top:2px}
+.toggle{width:40px;height:21px;background:var(--border);border-radius:99px;cursor:pointer;position:relative;transition:background .2s;border:none;flex-shrink:0}
+.toggle.on{background:var(--success)}
+.toggle::after{content:'';position:absolute;width:15px;height:15px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.on::after{transform:translateX(19px)}
+.toggle:disabled{opacity:.4;cursor:not-allowed}
+
+/* MODULES */
+.module-grid{display:grid;grid-template-columns:240px 1fr;gap:12px;height:calc(100vh - 116px)}
+.file-list{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.fl-head{padding:10px 13px;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.file-items{overflow-y:auto;flex:1}
+.file-item{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:background .15s;display:flex;justify-content:space-between;align-items:center}
+.file-item:hover{background:rgba(255,255,255,.04)}
+.file-item.active{background:rgba(59,130,246,.1)}
+.fi-name{font-family:'JetBrains Mono',monospace;font-size:.76rem;color:#38bdf8}
+.fi-size{font-size:.65rem;color:var(--muted2)}
+.editor-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.ed-head{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ed-fname{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:#38bdf8;font-weight:600}
+.code-area{flex:1;background:#040910;color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:.73rem;border:none;padding:13px;resize:none;line-height:1.8;width:100%;outline:none}
+.ed-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px;color:var(--muted2)}
+
+/* USERS */
+.user-table{width:100%;border-collapse:collapse}
+.user-table th{text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2);padding:8px 12px;border-bottom:1px solid var(--border)}
+.user-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8rem;vertical-align:middle}
+.user-table tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ANNOUNCE */
+.ann-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.ann-item{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;position:relative}
+.ann-author{font-size:.68rem;color:var(--muted2);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.ann-body{font-size:.82rem;line-height:1.6;white-space:pre-wrap}
+.ann-del{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:2px 6px;border-radius:5px}
+.ann-del:hover{color:var(--danger);background:rgba(239,68,68,.1)}
+.ann-empty{text-align:center;color:var(--muted2);font-size:.78rem;padding:20px 0}
+
+/* FORM */
+.form-g{margin-bottom:12px}
+.form-g label{display:block;font-size:.7rem;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+input.inp,textarea.inp,select.inp{width:100%;background:#080e1c;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:.8rem;transition:border-color .2s;resize:vertical}
+input.inp:focus,textarea.inp:focus,select.inp:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.hint{font-size:.68rem;color:var(--muted2);margin-top:4px}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;width:400px;max-width:90vw}
+.modal h3{font-size:.92rem;font-weight:700;margin-bottom:16px}
+.modal-actions{display:flex;gap:7px;margin-top:14px}
+
+/* TOAST */
+.toast{position:fixed;bottom:18px;right:18px;padding:9px 18px;border-radius:9px;font-weight:700;font-size:.78rem;opacity:0;transform:translateY(7px);transition:all .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok{background:#10b981;color:#fff}
+.toast.err{background:#ef4444;color:#fff}
+.toast.warn{background:#f59e0b;color:#000}
+
+/* UPTIME */
+.ubar{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.15);border-radius:9px;padding:9px 13px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.ubar span{font-size:.75rem;color:var(--muted2)}
+.uval{font-family:'JetBrains Mono',monospace;color:#38bdf8;font-weight:700;font-size:.82rem}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>FB<em>Bot</em></h1>
+      <p>Dashboard quản lý bot Facebook</p>
+    </div>
+    <div class="login-form-g">
+      <label>Tên đăng nhập</label>
+      <input type="text" id="login-user" placeholder="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-form-g">
+      <label>Mật khẩu</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Đăng Nhập</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;width:100%">
+<aside class="sidebar">
+  <div class="logo">
+    <h2>FB<em>Bot</em></h2>
+    <p>Dashboard</p>
+  </div>
+  <div class="user-chip" id="user-chip">
+    <div class="avatar" id="uc-avatar">?</div>
+    <div><div class="uname" id="uc-name">—</div><div class="urole"><span class="role-badge" id="uc-role">—</span></div></div>
+  </div>
+  <nav id="main-nav">
+    <button class="nb active" data-page="home"><span class="ico">🏠</span> Trang Chủ</button>
+    <button class="nb" data-page="announce"><span class="ico">📢</span> Thông Báo</button>
+    <button class="nb" data-page="chat"><span class="ico">💬</span> Chat</button>
+    <button class="nb" data-page="cmds"><span class="ico">⚡</span> Lệnh Bot</button>
+    <div class="nav-sep" id="sep-admin"></div>
+    <button class="nb" data-page="modules" id="nav-modules"><span class="ico">📂</span> File Lệnh</button>
+    <button class="nb" data-page="console" id="nav-console"><span class="ico">🖥️</span> Console</button>
+    <button class="nb" data-page="users" id="nav-users"><span class="ico">👥</span> Tài Khoản</button>
+    <button class="nb" data-page="config" id="nav-config"><span class="ico">⚙️</span> Cấu Hình</button>
+  </nav>
+  <div class="sfoot">
+    <button class="logout-btn" onclick="doLogout()">🚪 Đăng Xuất</button>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <h1 id="page-title">Trang Chủ</h1>
+    <div class="badge off" id="status-badge">
+      <div class="dot" id="sdot"></div>
+      <span id="stext">Đã Dừng</span>
+    </div>
+  </header>
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="metrics">
+        <div class="metric"><div class="mico b">🤖</div><div class="ml"><h3>Trạng Thái</h3><p id="m-status">Đã dừng</p></div></div>
+        <div class="metric"><div class="mico g">🆔</div><div class="ml"><h3>UID Bot</h3><p id="m-uid">—</p></div></div>
+        <div class="metric"><div class="mico y">⏱️</div><div class="ml"><h3>Uptime</h3><p id="m-uptime">00:00:00</p></div></div>
+        <div class="metric"><div class="mico p">📝</div><div class="ml"><h3>Log</h3><p id="m-logc">0</p></div></div>
+      </div>
+      <div class="card" id="ctrl-card" style="display:none">
+        <div class="ct">Điều Khiển Bot</div>
+        <div class="cs">Khởi động hoặc tắt bot Messenger.</div>
+        <div class="ubar"><span>Uptime:</span><span class="uval" id="udisp">00:00:00</span></div>
+        <div class="btn-row">
+          <button class="btn prim" id="btn-start" onclick="startBot()">▶ Khởi Động</button>
+          <button class="btn dang" id="btn-stop" onclick="stopBot()" disabled>⏹ Tắt Bot</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Log Nhanh</div><div class="cs">10 dòng gần nhất.</div>
+        <div class="console" id="home-log" style="height:150px"></div>
+      </div>
+    </div>
+
+    <!-- ANNOUNCE -->
+    <div class="page" id="page-announce">
+      <div class="card" id="ann-compose" style="display:none">
+        <div class="ct">📢 Đăng Thông Báo</div>
+        <div class="cs">Chỉ Admin và Owner mới có thể đăng. Tất cả thành viên đều thấy.</div>
+        <div class="form-g">
+          <label>Nội dung</label>
+          <textarea class="inp" id="ann-content" rows="3" placeholder="Nhập nội dung thông báo..."></textarea>
+        </div>
+        <button class="btn prim" onclick="postAnnounce()">📢 Đăng Thông Báo</button>
+      </div>
+      <div class="card">
+        <div class="ct">Thông Báo</div><div class="cs">Thông báo từ Admin và Owner.</div>
+        <div class="ann-list" id="ann-list"><div class="ann-empty">Chưa có thông báo.</div></div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="page" id="page-chat">
+      <div class="chat-wrap">
+        <div class="thread-list">
+          <div class="tl-head">
+            <div class="tl-label">Cuộc trò chuyện</div>
+            <input type="text" placeholder="🔍 Tìm thread..." oninput="filterThreads(this.value)">
+            <div class="open-thread">
+              <input type="text" id="manual-tid" placeholder="Nhập Thread ID..." onkeydown="if(event.key==='Enter')openManualThread()">
+              <button class="btn suc sm" onclick="openManualThread()">+</button>
+            </div>
+          </div>
+          <div class="thread-items" id="thread-items">
+            <div class="t-empty">Chưa có tin nhắn.<br>Nhập Thread ID để bắt đầu.</div>
+          </div>
+        </div>
+        <div class="chat-main" id="chat-main">
+          <div class="chat-placeholder">
+            <div class="ci">💬</div>
+            <p style="font-size:.8rem">Chọn thread hoặc nhập Thread ID</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMANDS -->
+    <div class="page" id="page-cmds">
+      <div class="card">
+        <div class="ct">Quản Lý Lệnh</div>
+        <div class="cs">Bật/tắt từng lệnh bot. Chỉ Admin+ mới có thể toggle.</div>
+        <div class="cmd-grid" id="cmd-grid">Đang tải...</div>
+      </div>
+    </div>
+
+    <!-- MODULES -->
+    <div class="page" id="page-modules">
+      <div class="module-grid">
+        <div class="file-list">
+          <div class="fl-head"><span>📂 File Lệnh</span><button class="btn suc sm" onclick="showNewModal()">+ Tạo</button></div>
+          <div class="file-items" id="file-items">Đang tải...</div>
+        </div>
+        <div class="editor-wrap">
+          <div class="ed-head">
+            <span class="ed-fname" id="ed-fname">Chọn file</span>
+            <div id="ed-actions" style="display:none;gap:6px;display:none">
+              <button class="btn prim sm" onclick="saveModule()">💾 Lưu</button>
+              <button class="btn dang sm" onclick="deleteModule()">🗑 Xóa</button>
+            </div>
+          </div>
+          <div class="ed-placeholder" id="ed-ph"><div style="font-size:2rem;opacity:.2">📄</div><p style="font-size:.75rem;color:var(--muted2)">Chọn file từ danh sách</p></div>
+          <textarea class="code-area" id="code-area" style="display:none" spellcheck="false"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONSOLE -->
+    <div class="page" id="page-console">
+      <div class="card" style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div><div class="ct">Console Log</div><div class="cs" style="margin:0">Realtime · tự làm mới 2s</div></div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <select id="log-filter" onchange="renderConsole()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);padding:5px 7px;border-radius:7px;font-size:.72rem;font-family:inherit">
+              <option value="">Tất cả</option><option value="bot">bot</option><option value="cmd">cmd</option>
+              <option value="send">send</option><option value="err">err</option><option value="web">web</option>
+            </select>
+            <button class="btn gho sm" onclick="clearLogs()">🗑</button>
+            <button class="btn gho sm" id="as-btn" onclick="toggleAS()">📌 ON</button>
+          </div>
+        </div>
+        <div class="console" id="console-box" style="height:calc(100vh - 210px)"></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div><div class="ct">👥 Quản Lý Tài Khoản</div><div class="cs" style="margin:0">Tạo, chỉnh sửa, xóa tài khoản.</div></div>
+          <button class="btn suc sm" onclick="showCreateUser()">+ Tạo TK</button>
+        </div>
+        <table class="user-table" id="user-table">
+          <thead><tr><th>Username</th><th>UID FB</th><th>Chức Vụ</th><th>Ngày Tạo</th><th>Thao Tác</th></tr></thead>
+          <tbody id="user-tbody">Đang tải...</tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="ct">🔑 Đổi Mật Khẩu</div><div class="cs">Đổi mật khẩu tài khoản của bạn.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-g" style="margin:0"><label>Mật khẩu cũ</label><input type="password" class="inp" id="old-pw" placeholder="••••••"></div>
+          <div class="form-g" style="margin:0"><label>Mật khẩu mới</label><input type="password" class="inp" id="new-pw" placeholder="••••••"></div>
+        </div>
+        <button class="btn warn sm" style="margin-top:10px" onclick="changePassword()">Đổi Mật Khẩu</button>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="page" id="page-config">
+      <div class="card">
+        <div class="ct">⚙️ Cấu Hình Bot</div><div class="cs">Cookie và thông số bot. Chỉ Owner mới thấy.</div>
+        <div class="form-g"><label>Cookie Facebook</label>
+          <textarea class="inp" id="cfg-cookies" rows="4" placeholder="Dán cookie vào đây (c_user=...; xs=...; ...)"></textarea>
+          <div class="hint" style="color:var(--warn)">⚠️ Giữ bí mật — không chia sẻ.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-g" style="margin:0"><label>Prefix lệnh</label><input type="text" class="inp" id="cfg-prefix" value="/"></div>
+          <div class="form-g" style="margin:0"><label>Admin UIDs (FB)</label><input type="text" class="inp" id="cfg-admins" placeholder="uid1, uid2"></div>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn prim" onclick="saveConfig()">💾 Lưu</button>
+          <button class="btn gho" onclick="loadConfig()">🔄 Tải lại</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- content -->
+</div><!-- main -->
+</div><!-- app -->
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-new-module">
+  <div class="modal">
+    <h3>➕ Tạo Module Mới</h3>
+    <div class="form-g"><label>Tên lệnh</label><input type="text" class="inp" id="new-mod-name" placeholder="vd: weather"></div>
+    <div class="modal-actions">
+      <button class="btn prim" onclick="createModule()">Tạo</button>
+      <button class="btn gho" onclick="hideModal('modal-new-module')">Hủy</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-create-user">
+  <div class="modal">
+    <h3>👤 Tạo Tài Khoản</h3>
+    <div class="form-g"><label>Username</label><input type="text" class="inp" id="cu-username" placeholder="username"></div>
+    <div class="form-g"><label>Mật khẩu</label><input type="password" class="inp" id="cu-password" placeholder="••••••"></div>
+    <div class="form-g"><label>UID Facebook (để nâng cấp)</label><input type="text" class="inp" id="cu-uid" placeholder="100012345678"></div>
+    <div class="form-g"><label>Chức vụ</label>
+      <select class="inp" id="cu-role">
+        <option value="member">👤 Member</option>
+        <option value="ndh">⚙️ NDH</option>
+        <option value="admin">🛡️ Admin</option>
+        <option value="owner">👑 Owner</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn suc" onclick="createUser()">Tạo</button>
+      <button class="btn gho" onclick="hideModal('modal-create-user')">Hủy</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-edit-user">
+  <div class="modal">
+    <h3>✏️ Chỉnh Sửa Tài Khoản</h3>
+    <input type="hidden" id="eu-username">
+    <div class="form-g"><label>Chức vụ mới</label>
+      <select class="inp" id="eu-role">
+        <option value="member">👤 Member</option>
+        <option value="ndh">⚙️ NDH</option>
+        <option value="admin">🛡️ Admin</option>
+        <option value="owner">👑 Owner</option>
+      </select>
+    </div>
+    <div class="form-g"><label>UID Facebook</label><input type="text" class="inp" id="eu-uid" placeholder="100012345678"></div>
+    <div class="form-g"><label>Mật khẩu mới (để trống nếu không đổi)</label><input type="password" class="inp" id="eu-pw" placeholder="••••••"></div>
+    <div class="modal-actions">
+      <button class="btn prim" onclick="updateUser()">Lưu</button>
+      <button class="btn gho" onclick="hideModal('modal-edit-user')">Hủy</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let ME = null;
+let allLogs = [];
+let autoScroll = true;
+let allThreads = [];
+let currentThread = null;
+let currentModule = null;
+const CMD_DESCS = {ping:'Kiểm tra độ trễ',help:'Danh sách lệnh',id:'Xem threadID/userID',echo:'Lặp lại nội dung',search:'Tìm user FB',unsend:'Thu hồi tin nhắn',pin:'Tìm ảnh Pinterest',love:'Reaction ❤️',ff:'Thông tin Free Fire',lq:'QR chuyển khoản',kb:'Gửi lời mời kết bạn'};
+const ROLE_LEVEL = {owner:4,admin:3,ndh:2,member:1};
+const ROLE_LABEL = {owner:'👑 Owner',admin:'🛡️ Admin',ndh:'⚙️ NDH',member:'👤 Member'};
+const ROLE_ICON = {owner:'👑',admin:'🛡️',ndh:'⚙️',member:'👤'};
+
+function rl(role){return ROLE_LEVEL[role]||0}
+function hasRole(min){return ME && rl(ME.role)>=rl(min)}
+
+// ===== TOAST =====
+function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',2800)}
+
+// ===== UTILS =====
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtUT(s){const h=String(Math.floor(s/3600)).padStart(2,'0'),m=String(Math.floor((s%3600)/60)).padStart(2,'0'),sec=String(s%60).padStart(2,'0');return`${h}:${m}:${sec}`}
+function fmtTime(ts){const d=new Date(ts);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')}
+
+// ===== LOGIN =====
+async function doLogin(){
+  const btn=document.getElementById('login-btn');
+  const user=document.getElementById('login-user').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  if(!user||!pass){err.textContent='Vui lòng nhập đủ thông tin.';return}
+  btn.disabled=true;btn.textContent='Đang đăng nhập...';err.textContent='';
+  try{
+    const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})}).then(r=>r.json());
+    if(r.ok){ME=r;showApp()}
+    else{err.textContent=r.msg||'Sai thông tin.'}
+  }catch(e){err.textContent='Lỗi kết nối server.'}
+  btn.disabled=false;btn.textContent='Đăng Nhập';
+}
+
+async function doLogout(){
+  await fetch('/api/auth/logout',{method:'POST'});
+  ME=null;currentThread=null;allLogs=[];
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+
+async function checkAuth(){
+  try{const r=await fetch('/api/auth/me').then(r=>r.json());if(r.ok){ME=r;showApp()}}catch(e){}
+}
+
+// ===== APP INIT =====
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='';
+  applyRole();
+  startPolling();
+  loadAnnouncements();
+}
+
+function applyRole(){
+  if(!ME)return;
+  // User chip
+  const chip=document.getElementById('user-chip');
+  chip.className='user-chip role-'+ME.role;
+  document.getElementById('uc-avatar').textContent=ROLE_ICON[ME.role]||'?';
+  document.getElementById('uc-name').textContent=ME.username;
+  const rb=document.getElementById('uc-role');
+  rb.textContent=ROLE_LABEL[ME.role]||ME.role;
+  rb.className='role-badge rb-'+ME.role;
+
+  // Nav visibility
+  const isAdmin=hasRole('admin'), isOwner=hasRole('owner');
+  document.getElementById('nav-modules').classList.toggle('hidden',!isAdmin);
+  document.getElementById('nav-console').classList.toggle('hidden',!hasRole('ndh'));
+  document.getElementById('nav-users').classList.toggle('hidden',!isOwner);
+  document.getElementById('nav-config').classList.toggle('hidden',!isOwner);
+  document.getElementById('sep-admin').classList.toggle('hidden',!isAdmin);
+  // Bot control only admin+
+  document.getElementById('ctrl-card').style.display=isAdmin?'':'none';
+}
+
+// ===== NAV =====
+document.querySelectorAll('.nb').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.nb').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    const p=b.dataset.page;
+    document.getElementById('page-'+p).classList.add('active');
+    document.getElementById('page-title').textContent=b.textContent.trim();
+    if(p==='config')loadConfig();
+    if(p==='cmds')loadCommands();
+    if(p==='modules')loadModules();
+    if(p==='chat')loadThreads();
+    if(p==='users')loadUsers();
+    if(p==='announce')loadAnnouncements();
+  });
+});
+
+// ===== STATUS POLL =====
+let pollTimer=null;
+function startPolling(){
+  if(pollTimer)clearInterval(pollTimer);
+  poll();pollTimer=setInterval(poll,2000);
+}
+
+async function poll(){
+  if(!ME)return;
+  try{
+    const [s,l]=await Promise.all([
+      fetch('/api/status').then(r=>r.json()),
+      hasRole('ndh')?fetch('/api/logs?n=300').then(r=>r.json()):Promise.resolve({logs:[]}),
+    ]);
+    updateStatus(s);
+    allLogs=l.logs||[];
+    renderConsole();renderHomeLog();
+    if(currentThread)pollChat(currentThread);
+  }catch(e){}
+}
+
+function updateStatus(d){
+  const run=d.running;
+  document.getElementById('status-badge').className='badge '+(run?'on':'off');
+  document.getElementById('stext').textContent=run?'Đang chạy':'Đã Dừng';
+  document.getElementById('sdot').className='dot'+(run?' pulse':'');
+  document.getElementById('m-status').textContent=run?'Đang chạy ✓':'Đã dừng';
+  document.getElementById('m-uid').textContent=d.uid||'—';
+  const ut=fmtUT(d.uptime||0);
+  document.getElementById('m-uptime').textContent=ut;
+  document.getElementById('udisp').textContent=ut;
+  const bs=document.getElementById('btn-start'),bst=document.getElementById('btn-stop');
+  if(bs){bs.disabled=run;bst.disabled=!run}
+}
+
+// ===== CONSOLE =====
+function tagCls(tag){return {bot:'bot',cmd:'cmd',err:'err',send:'send',web:'web',boot:'boot'}[tag]||''}
+function renderConsole(){
+  const filter=document.getElementById('log-filter')?.value||'';
+  const box=document.getElementById('console-box');if(!box)return;
+  const filtered=filter?allLogs.filter(l=>l.tag===filter):allLogs;
+  const atBot=box.scrollHeight-box.clientHeight<=box.scrollTop+40;
+  document.getElementById('m-logc').textContent=allLogs.length;
+  box.innerHTML=filtered.map(l=>{
+    const tc=l.level==='error'?'error':l.level==='warn'?'warn':(l.tag==='bot'||l.tag==='boot'?'ok':'');
+    return`<div class="line"><span class="ts">${l.ts}</span><span class="tag ${tagCls(l.tag)}">${l.tag}</span><span class="txt ${tc}">${esc(l.msg)}</span></div>`
+  }).join('');
+  if(autoScroll&&(atBot||filtered.length<5))box.scrollTop=box.scrollHeight;
+}
+function renderHomeLog(){
+  const box=document.getElementById('home-log');if(!box)return;
+  box.innerHTML=allLogs.slice(-10).map(l=>{
+    const tc=l.level==='error'?'error':l.tag==='bot'?'ok':'';
+    return`<div class="line"><span class="ts">${l.ts}</span><span class="tag ${tagCls(l.tag)}">${l.tag}</span><span class="txt ${tc}">${esc(l.msg)}</span></div>`
+  }).join('');
+  box.scrollTop=box.scrollHeight;
+}
+function clearLogs(){allLogs=[];renderConsole();renderHomeLog()}
+function toggleAS(){autoScroll=!autoScroll;document.getElementById('as-btn').textContent='📌 '+(autoScroll?'ON':'OFF')}
+
+// ===== BOT CONTROLS =====
+async function startBot(){
+  document.getElementById('btn-start').disabled=true;
+  const r=await fetch('/api/start',{method:'POST'}).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');
+}
+async function stopBot(){
+  const r=await fetch('/api/stop',{method:'POST'}).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');
+}
+
+// ===== CONFIG =====
+async function loadConfig(){
+  if(!hasRole('owner'))return;
+  const cfg=await fetch('/api/config').then(r=>r.json());
+  document.getElementById('cfg-prefix').value=cfg.prefix||'/';
+  document.getElementById('cfg-admins').value=(cfg.admins||[]).join(', ');
+  if(cfg.cookies_hint)document.getElementById('cfg-cookies').placeholder='🔒 '+cfg.cookies_hint;
+}
+async function saveConfig(){
+  const r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({cookies:document.getElementById('cfg-cookies').value.trim(),prefix:document.getElementById('cfg-prefix').value.trim(),admins:document.getElementById('cfg-admins').value.trim()})
+  }).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');
+  if(r.ok){document.getElementById('cfg-cookies').value='';loadConfig()}
+}
+
+// ===== COMMANDS =====
+async function loadCommands(){
+  const d=await fetch('/api/commands').then(r=>r.json());
+  const grid=document.getElementById('cmd-grid');
+  grid.innerHTML=d.commands.map(c=>`
+    <div class="cmd-card">
+      <div><div class="cmd-name-lbl">/${c.name}</div><div class="cmd-desc-lbl">${CMD_DESCS[c.name]||'Lệnh tuỳ chỉnh'}</div></div>
+      <button class="toggle ${c.enabled?'on':''}" ${c.can_toggle?'':'disabled'} id="tog-${c.name}" onclick="toggleCmd('${c.name}')"></button>
+    </div>`).join('');
+}
+async function toggleCmd(name){
+  const r=await fetch(`/api/commands/${name}/toggle`,{method:'POST'}).then(r=>r.json());
+  if(r.ok){const t=document.getElementById('tog-'+name);r.enabled?t.classList.add('on'):t.classList.remove('on');toast(r.msg)}
+}
+
+// ===== MODULES =====
+async function loadModules(){
+  const d=await fetch('/api/modules').then(r=>r.json());
+  const list=document.getElementById('file-items');
+  if(!d.files?.length){list.innerHTML='<div style="padding:14px;font-size:.75rem;color:var(--muted2)">Chưa có module.</div>';return}
+  list.innerHTML=d.files.map(f=>`
+    <div class="file-item ${currentModule===f.name?'active':''}" onclick="openModule('${f.name}')">
+      <span class="fi-name">${f.filename}</span><span class="fi-size">${(f.size/1024).toFixed(1)}kb</span>
+    </div>`).join('');
+}
+async function openModule(name){
+  currentModule=name;
+  const d=await fetch(`/api/modules/${name}`).then(r=>r.json());
+  if(!d.ok){toast(d.msg,'err');return}
+  document.getElementById('ed-fname').textContent=name+'.py';
+  const ea=document.getElementById('ed-actions');ea.style.display='flex';
+  document.getElementById('ed-ph').style.display='none';
+  const ca=document.getElementById('code-area');ca.style.display='block';ca.value=d.content;
+  loadModules();
+}
+async function saveModule(){
+  if(!currentModule)return;
+  const r=await fetch(`/api/modules/${currentModule}`,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({content:document.getElementById('code-area').value})}).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');if(r.ok)loadModules();
+}
+async function deleteModule(){
+  if(!currentModule||!confirm(`Xóa ${currentModule}.py?`))return;
+  const r=await fetch(`/api/modules/${currentModule}`,{method:'DELETE'}).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');
+  if(r.ok){currentModule=null;document.getElementById('ed-fname').textContent='Chọn file';document.getElementById('ed-actions').style.display='none';document.getElementById('ed-ph').style.display='flex';document.getElementById('code-area').style.display='none';loadModules()}
+}
+function showNewModal(){showModal('modal-new-module');document.getElementById('new-mod-name').value='';document.getElementById('new-mod-name').focus()}
+async function createModule(){
+  const name=document.getElementById('new-mod-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
+  if(!name){toast('Tên không hợp lệ','err');return}
+  const tpl=`def handle(bot, snap: dict, arg: str) -> None:\n    """Lệnh /${name}"""\n    bot._reply(snap, "✅ Lệnh /${name} hoạt động!")\n`;
+  const r=await fetch(`/api/modules/${name}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:tpl})}).then(r=>r.json());
+  hideModal('modal-new-module');toast(r.msg,r.ok?'ok':'err');
+  if(r.ok){loadModules();setTimeout(()=>openModule(name),300)}
+}
+
+// ===== CHAT =====
+async function loadThreads(){
+  const d=await fetch('/api/threads').then(r=>r.json());
+  allThreads=d.threads||[];renderThreadList(allThreads);
+}
+function filterThreads(q){
+  renderThreadList(q?allThreads.filter(t=>t.name.toLowerCase().includes(q.toLowerCase())||t.id.includes(q)):allThreads);
+}
+function renderThreadList(threads){
+  const el=document.getElementById('thread-items');
+  if(!threads.length){el.innerHTML='<div class="t-empty">Chưa có thread.<br>Nhập Thread ID để bắt đầu.</div>';return}
+  el.innerHTML=threads.map(t=>`
+    <div class="thread-item ${currentThread===t.id?'active':''}" onclick="openThread('${t.id}')">
+      <div class="t-name">${esc(t.name)}</div>
+      <div class="t-preview">${esc(t.last_sender?t.last_sender+': ':'')}${esc(t.last_msg||'')}</div>
+    </div>`).join('');
+}
+function openManualThread(){
+  const tid=document.getElementById('manual-tid').value.trim();
+  if(!tid){toast('Nhập Thread ID','warn');return}
+  if(!allThreads.find(t=>t.id===tid)){
+    allThreads.unshift({id:tid,name:`Thread ${tid.slice(-6)}`,last_msg:'',last_ts:0,last_sender:''});
+    renderThreadList(allThreads);
+  }
+  openThread(tid);
+  document.getElementById('manual-tid').value='';
+}
+async function openThread(id){
+  currentThread=id;
+  renderThreadList(allThreads);
+  const t=allThreads.find(x=>x.id===id);
+  const name=t?t.name:`Thread ${id.slice(-6)}`;
+  const main=document.getElementById('chat-main');
+  const canSend=hasRole('ndh');
+  main.innerHTML=`
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="ch-name">${esc(name)}</div>
+        <div class="ch-id">ID: ${id}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn gho sm" onclick="renameThread('${id}')">✏️</button>
+        <button class="btn gho sm" onclick="loadThreads()">🔄</button>
+      </div>
+    </div>
+    <div class="chat-msgs" id="chat-msgs-${id}"><div style="text-align:center;color:var(--muted2);font-size:.75rem;padding:16px">Đang tải...</div></div>
+    ${canSend?`
+    <div class="chat-input-area">
+      <div class="quick-cmds">
+        <span style="font-size:.65rem;color:var(--muted2);align-self:center">Lệnh nhanh:</span>
+        ${Object.keys(CMD_DESCS).slice(0,6).map(c=>`<button class="qcmd" onclick="insertCmd('${id}','/${c}')">${c}</button>`).join('')}
+      </div>
+      <div class="chat-input-row">
+        <textarea id="chat-inp-${id}" placeholder="Nhập tin nhắn... (Enter gửi, Shift+Enter xuống dòng)" onkeydown="handleChatKey(event,'${id}')" oninput="checkCmdMode(this)"></textarea>
+        <button class="btn prim sm" onclick="sendMsg('${id}')">Gửi</button>
+      </div>
+    </div>`:'<div style="padding:10px;text-align:center;font-size:.73rem;color:var(--muted2)">Bạn không có quyền gửi tin nhắn.</div>'}`;
+  await pollChat(id);
+}
+
+function checkCmdMode(el){
+  if(el.value.startsWith('/'))el.classList.add('is-cmd');
+  else el.classList.remove('is-cmd');
+}
+function insertCmd(id,cmd){
+  const inp=document.getElementById('chat-inp-'+id);
+  if(inp){inp.value=cmd+' ';inp.focus();checkCmdMode(inp)}
+}
+
+async function pollChat(id){
+  const box=document.getElementById('chat-msgs-'+id);if(!box)return;
+  const d=await fetch(`/api/threads/${id}/messages`).then(r=>r.json());
+  const msgs=d.messages||[];
+  const atBot=box.scrollHeight-box.clientHeight<=box.scrollTop+50;
+  if(!msgs.length){box.innerHTML='<div style="text-align:center;color:var(--muted2);font-size:.75rem;padding:16px">Chưa có tin nhắn</div>';return}
+
+  // Group messages
+  let html='';let lastSender='';
+  msgs.forEach(m=>{
+    const isMe=m.from_bot;
+    const cls=isMe?'me':'them';
+    const isCmd=!isMe&&m.body&&m.body.startsWith('/');
+    if(m.sender!==lastSender){
+      if(html)html+='</div>';
+      html+=`<div class="msg-group ${cls}">`;
+      if(!isMe){
+        html+=`<div class="msg-sender"><span class="s-name">${esc(m.sender_name||m.sender)}</span> <span class="s-uid">· ${m.sender}</span></div>`;
+      }
+      lastSender=m.sender;
+    }
+    html+=`<div class="bubble${isCmd?' cmd':''}">${esc(m.body)}</div>`;
+    html+=`<div class="msg-time">${fmtTime(m.ts)}</div>`;
+  });
+  if(html)html+='</div>';
+  box.innerHTML=html;
+  if(atBot||msgs.length<5)box.scrollTop=box.scrollHeight;
+}
+
+function handleChatKey(e,id){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg(id)}}
+
+async function sendMsg(id){
+  const inp=document.getElementById('chat-inp-'+id);
+  const content=inp?.value.trim();if(!content)return;
+  inp.value='';inp.classList.remove('is-cmd');
+  const r=await fetch(`/api/threads/${id}/send`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})}).then(r=>r.json());
+  if(!r.ok)toast(r.msg,'err');
+  else{await pollChat(id);loadThreads()}
+}
+
+async function renameThread(id){
+  const name=prompt('Đổi tên thread:');if(!name)return;
+  await fetch(`/api/threads/${id}/name`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+  const t=allThreads.find(x=>x.id===id);if(t)t.name=name;
+  renderThreadList(allThreads);
+  document.querySelector('.ch-name').textContent=name;
+  toast('Đã đổi tên!');
+}
+
+// ===== ANNOUNCEMENTS =====
+async function loadAnnouncements(){
+  const d=await fetch('/api/announcements').then(r=>r.json());
+  const list=document.getElementById('ann-list');
+  const compose=document.getElementById('ann-compose');
+  if(compose)compose.style.display=hasRole('admin')?'':'none';
+  const anns=d.announcements||[];
+  if(!anns.length){list.innerHTML='<div class="ann-empty">Chưa có thông báo nào.</div>';return}
+  list.innerHTML=[...anns].reverse().map(a=>`
+    <div class="ann-item">
+      <div class="ann-author">
+        <span class="role-badge rb-${a.role}">${ROLE_LABEL[a.role]||a.role}</span>
+        <strong>${esc(a.author)}</strong>
+        <span style="color:var(--muted)">· ${a.ts}</span>
+      </div>
+      <div class="ann-body">${esc(a.content)}</div>
+      ${hasRole('admin')?`<button class="ann-del" onclick="deleteAnn(${a.id})">✕</button>`:''}
+    </div>`).join('');
+}
+async function postAnnounce(){
+  const content=document.getElementById('ann-content').value.trim();
+  if(!content){toast('Nội dung trống','warn');return}
+  const r=await fetch('/api/announcements',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})}).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');
+  if(r.ok){document.getElementById('ann-content').value='';loadAnnouncements()}
+}
+async function deleteAnn(id){
+  if(!confirm('Xóa thông báo này?'))return;
+  await fetch(`/api/announcements/${id}`,{method:'DELETE'});
+  loadAnnouncements();toast('Đã xóa');
+}
+
+// ===== USERS =====
+async function loadUsers(){
+  const d=await fetch('/api/users').then(r=>r.json());
+  const tbody=document.getElementById('user-tbody');
+  tbody.innerHTML=d.users.map(u=>`
+    <tr>
+      <td><strong>${esc(u.username)}</strong></td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted2)">${esc(u.uid)||'—'}</span></td>
+      <td><span class="role-badge rb-${u.role}">${ROLE_LABEL[u.role]||u.role}</span></td>
+      <td style="color:var(--muted2);font-size:.75rem">${esc(u.created_at)||'—'}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn gho sm" onclick="showEditUser('${u.username}','${u.role}','${u.uid||''}')">✏️</button>
+          <button class="btn dang sm" onclick="deleteUser('${u.username}')">🗑</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+function showCreateUser(){showModal('modal-create-user')}
+async function createUser(){
+  const r=await fetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    username:document.getElementById('cu-username').value.trim(),
+    password:document.getElementById('cu-password').value,
+    uid:document.getElementById('cu-uid').value.trim(),
+    role:document.getElementById('cu-role').value,
+  })}).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');if(r.ok){hideModal('modal-create-user');loadUsers()}
+}
+function showEditUser(username,role,uid){
+  document.getElementById('eu-username').value=username;
+  document.getElementById('eu-role').value=role;
+  document.getElementById('eu-uid').value=uid;
+  document.getElementById('eu-pw').value='';
+  showModal('modal-edit-user');
+}
+async function updateUser(){
+  const username=document.getElementById('eu-username').value;
+  const body={role:document.getElementById('eu-role').value,uid:document.getElementById('eu-uid').value.trim()};
+  const pw=document.getElementById('eu-pw').value;if(pw)body.password=pw;
+  const r=await fetch(`/api/users/${username}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');if(r.ok){hideModal('modal-edit-user');loadUsers()}
+}
+async function deleteUser(username){
+  if(!confirm(`Xóa tài khoản ${username}?`))return;
+  const r=await fetch(`/api/users/${username}`,{method:'DELETE'}).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');if(r.ok)loadUsers();
+}
+async function changePassword(){
+  const r=await fetch('/api/users/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    old_password:document.getElementById('old-pw').value,
+    new_password:document.getElementById('new-pw').value,
+  })}).then(r=>r.json());
+  toast(r.msg,r.ok?'ok':'err');
+  if(r.ok){document.getElementById('old-pw').value='';document.getElementById('new-pw').value=''}
+}
+
+// ===== MODAL =====
+function showModal(id){document.getElementById(id).classList.add('show')}
+function hideModal(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+
+// ===== INIT =====
+checkAuth();
+setInterval(loadAnnouncements,15000);
+</script>
+</body>
+</html>
